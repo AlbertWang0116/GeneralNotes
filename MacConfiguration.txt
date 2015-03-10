@@ -7,3 +7,12 @@ System Preference -> Keyboard -> Shortcuts -> App Shortcuts -> “+” -> { <Men
 3. Add ‘Change Input Source’ Hot Key (Control + Space)
 System Preference -> Keyboard -> Shortcuts -> Input Sources -> <Select next source in Input menu, Control+Space>
 
+4. Some other useful hot keys
+<Minimize Window, Command+M>
+<New Terminal Tab, Command+T>
+<Hide Current Window, Command+H>
+<Hide All the Window except Current Window, Command+Option+H>
+<Close Window, Command+W>
+<Switch Application, Command+Tab>
+<Switch Window in Same Application, Command+`>
+<Switch Tab, Command+Shift+[/]>

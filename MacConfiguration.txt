@@ -1,0 +1,9 @@
+1. Add Hot Corner
+System Preference -> Mission Control -> Hot Corners -> { <Left Down, Desktop>, <Right Up, Application Windows>, <Right Down, Mission Control> }
+
+2. Add ‘Zoom’ Hot Key (Command + Control + M)
+System Preference -> Keyboard -> Shortcuts -> App Shortcuts -> “+” -> { <Menu Title, Zoom>, <Keyboard Shortcut, Command+Control+M> }
+
+3. Add ‘Change Input Source’ Hot Key (Control + Space)
+System Preference -> Keyboard -> Shortcuts -> Input Sources -> <Select next source in Input menu, Control+Space>
+

@@ -1,0 +1,27 @@
+"Display line number
+set nu
+
+"Make syntax element colorful
+syntax on
+
+"Automatically shift when press enter, and set the tab and indent distance to be 4
+set smartindent
+set tabstop=4
+set shiftwidth=4
+
+"Highlight the searching keyword, and auto highlight when typing keyword
+set incsearch
+set hlsearch
+
+"Enable and set the format of status bar. Please refer to the following information,
+"http://blog.csdn.net/strategycn/article/details/7620261
+"http://vimdoc.sourceforge.net/htmldoc/syntax.html#:highlight
+hi User1 term=reverse ctermfg=16 ctermbg=5 guifg=16 guibg=5
+hi User2 term=reverse,bold cterm=bold ctermfg=16 ctermbg=5 gui=bold guifg=16 guibg=5
+set laststatus=2
+set statusline=%1*%F%m%r%h%w\ \ %2*Format:%1*%{&ff}\ \ %2*Type:%1*%Y%=%<%2*Row:%1*%l,%2*Col:%1*%c,%2*Per:%1*%p%%\ \ %2*Offset:%1*%o\ \ %2*CharId:%1*%B
+
+"The self defined shortcut
+map afight i#include<iostream>#include<cstdio>#include<cstdlib>#include<ctime>#include<cstring>#include<cmatch>#include<algorithm>#include<set>#include<map>#include<vector>using namespace std;
+map // :s/^/\/\//gj
+map \\ :s/^\/\///gj

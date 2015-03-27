@@ -19,7 +19,7 @@ System Preference -> Keyboard -> Shortcuts -> Input Sources -> <Select next sour
 
 5. Download iTerm2
 (1) iterm2.com -> Download
-(2) https://github.com/mbadolato/iTerm2-Color-Schemes -> Download Color Schemes -> See “README.md” for instruction (The Style ‘Elemental’ is recommended) [A copy of project iTerm2-Color-Schemes is stored in folder MacResources)
+(2) https://github.com/mbadolato/iTerm2-Color-Schemes -> Download Color Schemes -> See “README.md” for instruction (The Style ‘Elemental’ and 'Ciapre' is recommended) [A copy of project iTerm2-Color-Schemes is stored in folder MacResources)
 (3) Find a new icon (.icns file) for iTerm2 -> Open the icns file -> Command+A -> Command+C -> Right Click iTerm2 -> Get Info -> Click Icon at Upper left of window -> Command+V (A recommended .icns file is stored in MacResources)
 (4) Open iTerm2 -> iTerm -> Preferences -> Profiles -> Window -> <Transparency, 15%>
 (5) Open iTerm2 -> iTerm -> Preferences -> Keys -> <Show/hide iTerm2 with a system-wide hotkey, Control+Command+H>
@@ -27,8 +27,27 @@ System Preference -> Keyboard -> Shortcuts -> Input Sources -> <Select next sour
 6. other useful Hot Keys for iTerm2
 <Split Window Horizontally, Command+D>
 <Split Window Vertically, Command+Shift+D>
+<Split Window Vertically with Other Profile, Command+Option+Shift+V>
 <Navigate Split Panel, Command+Option+Arrow>
 <Full Screen, Command+Enter>
 
 7. vimrc
 Copy MacResources/vimrc to ~/.vimrc
+
+8. Install HomeBrew
+brew.sh -> follow instruction
+
+9. Install Latex environment
+https://tug.org/mactex/ -> download mactex -> install -> edit /usr/local/textlive/{edtion}/texmf-dist/tex/latex/ctex/fontset/ctex-xecjk-winfonts.def -> replace following :
+#begin
+\setCJKmainfont[BoldFont=STHeiti,ItalicFont=STKaiti]{STSong}
+\setCJKsansfont[BoldFont=STHeiti]{STXihei}
+\setCJKmonofont{STFangsong}
+\setCJKfamilyfont{zhsong}{STSong}
+\setCJKfamilyfont{zhhei}{STHeiti}
+\setCJKfamilyfont{zhkai}{STKaiti}
+\setCJKfamilyfont{zhfs}{STFangsong} 
+#end
+#hint: use xelatex command to compile chinese character document
+
+

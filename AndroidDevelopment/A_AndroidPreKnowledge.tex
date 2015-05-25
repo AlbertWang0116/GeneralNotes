@@ -1,0 +1,31 @@
+\documentclass[UTF8]{ctexart}
+	\title{Android学习前期调研}
+	\author{st.krwlng}
+\begin{document}
+	\maketitle
+	\tableofcontents
+	\subsection{布局文件的引用机制} Android框架可以使用xml文件来定义界面的布局。为了能够将布局文件与页面类关联起来，Android框架使用一个静态类R来引用包括布局xml文件在内的所有资源（R类为每个引用创建一个成员），页面类在onCreate方法中通过调用setContentView并传入xml文件在R类中对应的成员来使用该xml布局。
+	\subsection{布局文件中的控件的引用机制} 控件的引用同样是通过静态类R实现的。控件可以在xml中通过android:id属性定义标识符（任意控件标识符不能相同），在编译时，每个被定义的android:id属性会成为R类的一个成员。在界面对象通过setContentView使用某个布局文件时，它会为布局文件中每个控件创建实例，并为拥有android:id属性的控件赋予一个标识属性，其值为android:id属性对应的R成员。在这之后，界面对象内部则可以调用findViewById方法通过传入android:id对应的R类静态成员得到该控件的实例。
+	\subsection{Android编译过程} Android工程编译过程如下：
+
+	{1.} 将res目录下的资源文件写入R静态类中。
+
+	{2.} 编译、打包res目录下的资源文件。
+
+	{3.} 将后台源码（.java文件）编译成.class文件。
+
+	{4.} 将所有文件打包成.apk文件。
+	
+	如果在Android的IDE里编辑res目录下的资源文件并保存，IDE会自动完成第一步的编译过程，以方便后台代码编写时的自动补全。
+	\subsection{Android资源文件的管理} Android工程中有一个res目录，该目录下有不同名字的子目录（e.g. drawable, layout ...）用于存放不同类别的资源文件。在编译时，编译器会为每个类别的资源在R中创建一个相应名称的内部类，并为子目录下的每个资源文件在相应内部类中创建一个与文件名相同的int成员。静态类R还会专门申明一个名为id的内部类，为XML布局文件中的每个android:id属性创建一个同名的int成员。R内部的成员是相应资源的引用标识符，某些使用外部资源的Android SDK接口需要调用者提供传入资源的标识符。
+
+	在java代码中引用资源通过R.<类别内部类名>.<资源名>，在xml中引用资源通过"@<类别内部类名>/<资源名>"。
+
+    由于资源会根据其名称成为R类的静态成员，资源的名称必须符合Java变量的命名规范。
+	\subsection{Android应用程序组件} Android程序由程序组件构成，组件一共有4类，不同类别的组件有不同的特性，应用程序组件可以共享给其他应用程序使用。
+		\paragraph{Activity组件} 每个Activity组件相当于一个C/S程序的窗口，Acitivity组件提供了视觉元素，并能够与用户进行交互。
+		\paragraph{Service组件} Service组件不具有视觉元素，而是在后台持续运行，它可以为用户持续地提供服务（如音乐播放），但用户无法直接地与它进行交互。
+		\paragraph{Broadcast Receiver组件} Broadcast Receiver组件同样是后台持续运行的组件，不同的是它可以监听操作系统（或其他应用程序）发出的广播事件，并在事件触发时通过启动一个Activity组件通知用户（并进行其他交互）。
+		\paragraph{Content Provider组件} Content Provider组件用于为其他应用程序提供数据资源（具体特征与使用方法暂时不明）。
+	\subsection{AndroidManifest.xml文件} AndroidManifest.xml文件是Android程序的全局配置文件，在这个配置文件里可以定义应用程序名称、声明使用的Android应用程序组件（使用的组件必须在这里声明）、确定第一个运行的Activity、定义应用程序运行需要的最小操作系统版本等。
+\end{document}

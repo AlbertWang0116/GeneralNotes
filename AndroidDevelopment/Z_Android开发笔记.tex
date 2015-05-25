@@ -1,0 +1,114 @@
+\documentclass[UTF8]{ctexart}
+    \title{Android开发笔记}
+    \author{st.krwlng}
+\begin{document}
+    \maketitle
+    \tableofcontents
+    \subsection{杂项}
+    \paragraph{setter的深浅拷贝}
+    如果对象生命周期短且无外界关联，则同时提供深浅拷贝（默认浅拷贝）——防止该对象生命周期被有意延长而出现bug。
+    \paragraph{异常的抛出时机}
+    在满足异常检测最大可维护性的前提下最早抛出。
+    \paragraph{接口重载结构}
+    确保链式或树型结构，仅在根部重载方法中引入默认参数和实现。（确保可维护性）
+    \paragraph{给下游开发者提供开源库选择接口}
+    将调用开源库的部分做成Adapter，并从抽象类继承，以允许下游开发者引入自己的开源库，并实现自己的Adapter（避免同类开源库的版本冲突）。
+    \paragraph{被多个方法使用的可重载参数放在构造器中}
+    可以减少方法的重载参数个数。
+    \paragraph{Sdk版本与Jdk版本}
+    当前Android最高版本是5.0，支持的Jdk最高版本是1.7。导入的Jdk1.8版本编译的class文件将无法通过magic number验证，因此如果安装的是Jdk1.8版本，需要将编译目标调整为1.7版本。Android Studio在使用1.8版本Jdk时会自动将编译目标输出为1.7版本。如果输出Sdk版本变得更低，最高支持Jdk版本和最低支持Jdk版本都将相应减少。
+    \paragraph{UI线程访问网络}
+    Android4.0以后UI线程访问网络会抛出NetworkOnMainThreadException。可以在Activity中通过setThreadPolicy更改，不过不建议这样做。
+    \paragraph{Adapter线程支持}
+    列表控件的Adapter不支持非UI线程对它的修改，需要跳转到UI线程再进行访问。
+    \paragraph{Android模拟器访问本机Ip}
+    可以指定本机在局域网内的Ip，也可以指定固定Ip 10.0.2.2。
+    \paragraph{HttpClient版本冲突}
+    Android SDK自带HttpClient 4.1（貌似）版本，因此无法导入新版本的HttpClient库。另外HttpClient 4.3版本前后设置Timeout的方式不一样。
+    \paragraph{Base64编码与解码}
+    根据RFC的要求，默认的Base64编码会在编码内容中插入回车符号\n或\r\n，如果需要取消回车符号，可以使用Base64.encode(byte[], Base64.NO_WRAP)。
+    \paragraph{AsyncTask的线程池参数}
+    AsyncTask是一个轻量级的异步调用机制，但是默认情况下它使用一个容量为1的线程池来执行异步请求。可以通过修改线程池参数来使用其他线程，除了容量为1的线程池，AsyncTask还提供了一个容量为5的线程池可以使用。也可以自己重新创建一个容量更高的线程池传递给AsyncTask。AsyncTask还有一个缺陷是doInBacground不可被打断。
+    \paragraph{ListAdapter的convertView与viewType机制}
+    ListAdapter内部有一个Recycler，会将滑出屏幕以外的view通过getView的convertView参数重新传递进来，供新进入的item使用。如果item的布局不尽相同，可以重载ListAdapter与ViewType相关的两个方法，该方法会根据item的position得到viewType值，并在调用getView时为对应position传递Recycler中相同type的view。
+    \paragraph{View的ViewHolder}
+    一种通用的设计模式是在View的Tag中放入一个名为ViewHolder的自定义类，该类中存储View中需要访问到的控件实例的引用。通过避免重复调用findViewById来节省控件树内索引的开销。
+    \paragraph{在图片压缩时获取ImageView的宽高}
+    在ImageView（其他View同样适用）被加载到视图以前，getHeight和getWidth方法会返回0。可以通过View的addOnLayoutChangeListener添加回调，在回调被调用时，该View的getHeight和getWidth方法就可以正确返回大小。由于View可能在页面中多次被调整位置或在ListView中重用，onLayoutChange会被多次响应，因此如果只是希望在加载时获取大小信息，需要在响应回调后用removeOnLayoutChangeListener取消监听。
+    \paragraph{match_parent变wrap_content的bug}
+    当前版本在ListView的Item Layout中，如果根容器的高是固定大小，子控件的高若是match_parent，实际会被当作wrap_content处理，而且背景透明度也无法被应用。应该是一个bug，其他触发机制暂不明。
+    \paragraph{阻塞式消息队列LinkedBlockingQueue}
+    java.util.concurrent.LinkedBlockingQueue是一个线程安全阻塞式队列，可以用来进行线程阻塞和消息通信。
+    \paragraph{多工程项目的jar引用}
+    多个aar联合的Android项目不能包含相同的jar文件。如果只有一个aar工程文件引用jar文件，而aar文件被多次引用，则不会出现此问题。不过没有引用jar的工程文件在Android Studio中不会自动补全，还会误报错误。
+    \paragraph{View的坐标获取}
+    getX和getY可以获得float类型的相对父控件的坐标；getTop、getBottom、getLeft、getRight可以获得相对父控件的整型坐标；getLayoutOnScreen可以获得相对屏幕的整型坐标；getLayoutOnWindow可以获得相对父窗体的整型坐标。
+    \paragraph{让任意控件能够响应selector}
+    将View的clickable属性设为true即可响应。
+    \paragraph{给ListView加上弹簧效果}
+    ListView有一个protected方法overScrollBy，重载后给父类重新传递maxOverScrollX和maxOverSCrollY即可改变最大偏移量。其他属性的修改不会带来实质性的效果。另，当下的弹簧效果存在小bug，有时候无法恢复正常位置。
+    \paragraph{去掉ListView触碰边缘时的阴影}
+    ListView有两个私有的EdgeEffect变量用于显示阴影效果，名字分别为mEdgeGlowTop和mEdgeGlowBottom。由于EdgeEffect是在发生时动态被改变颜色与形状，因此不能在初始化时对其重新赋值。一种可行的办法是重载EdgeEffect并让setColor和setSize固定将其color、width和height属性设置为常数，再将重载的类的实例赋值给ListView的两个私有字段。该方法在API 21前均有效。
+    \paragraph{在有弹簧效果的前提下判断ListView超出上边缘}
+    当ListView超出边缘时，它的scrollY值会变为非0值，负值为超出上边界。一般的想法是在onScroll事件中判断scrollY值。然而在超出上边界时很难触发onScroll事件，且只有在touch状态下，ListView才比较容易超出上边缘。好在这种情况下松开手会触发onScrollStateChanged事件，并使ListView的scrollState变为FLING，此时ListView的scrollY负值就可以被捕获到。
+    \paragraph{Service组件的生命周期}
+    Service组件可由其他组件调用startService或bindService开启，并由stopService或unbindService结束。如果只通过startService开启，会相继调用onCreate和onStartCommand，最后只能通过stopService结束；如果通过bindService开启，会相继调用onCreate和onBind，最后只能通过unbindService结束；如果先使用startService再使用bindService，则onCreate、onStartCommand和onBind会被先后调用，最后必须清空bind并调用过stopService才会结束。（如果先使用bindService，使用startService只会触发onStartCommand且不会被计数；重复调用bindService也不会发生任何反应）
+    \paragraph{Service组件相关方法的执行线程}
+    startService、stopService、bindService和unbindService都是瞬时返回，不会阻塞等待Service的onCreate、onStartCommand、onBind等完成；onCreate等方法都是在Service所在进程的UI线程中执行；IBind的调用方会阻塞等待直到返回结果，Service所在进程会再特定的线程池中执行被调用的方法，不会影响UI线程。
+    \paragraph{ServiceConnection接口}
+    bindService成功后会通过ServiceConnection接口执行回调。其中onServiceConnected会在bind成功后执行（已经成功后再次调用bindService不会调用）；onServiceDisconnected只会在系统内存不够、强制关闭Service时被调用，主动关闭Service时是不会执行的。
+    \paragraph{系统强制关闭Service时的自动重建}
+    在onStartCommand方法中需要返回一个int类型，如果将其指定为START_STICKY，系统会重新运行Service，并先后调用onCreate和onStartCommand方法，不过onStartCommand方法的intent对象为null。被系统强制杀死的Service如果存在绑定，Service重新启动后会重新建立绑定而不需要客户端重新显示重绑。
+    \paragraph{SharedPreferences的写操作}
+    SharedPreferences通过其内部类Editor完成写操作，但需要注意，每次调用SharedPreferences对象.edit()方法得到的Editor实例都是一个全新的实例，因此一定要一次执行完成。
+    \paragraph{相同包不同进程的数据共享}
+    Android中想要在不同进程间使用共享内存需要传输文件描述符。如果对效率要求不高，可以使用SharedPreferences。如果使用receiver监听开机事件，也可以达到重启清空数据的目的。
+    \paragraph{跨工程调用的Broadcast}
+    跨工程的Broadcast Receiver所属的包依旧是它自身所在工程的package name，但会在主工程里所在的进程中被调用。Android 3.0后，如果某个包没有运行过，所属这个包的Broadcast Receiver对自定义的Action和部分系统Action将不会起反应（Google为了安全制定该策略）；不过如果广播的是自定义Action且设置了Intent.FLAG_INCLUDE_STOPPED_PACKAGES，则可以不被前面所述的规则限制。
+    \subsection{Android Studio库文件aar的创建与引用}
+    \paragraph{重新阐述Android的工程目录}
+    由Android Studio创建的新工程下只有一个app项目，实际上可以在该工程内创建其他的Android项目，每一个Android项目可以是一个新的app（打包时生成apk文件）或一个库（打包时生成aar文件）。工程目录的根文件夹下除了有各个项目的根文件夹，还有gradle程序，该程序用于构建所有的项目。每个项目的根文件夹下都有一个build.gradle文件，该文件描述了工程的编译规则，并决定该工程是一个app还是一个库。
+    \paragraph{aar库的创建}
+    默认的Android项目（打包生成app)的build.gradle文件头为com.android.application，表示项目为android app。如果将文件头改为com.android.library，则打包生成的则是库文件arr。
+    \paragraph{（Android Studio版本号1.1.0）aar库的引用方法一（推荐）}
+    将aar文件放在引用项目的libs文件夹内；在引用项目的build.gradle文件的dependencies域内加入compile (name:'<文件名不含arr后缀>', ext:'arr')；在引用项目的build.gradle文件中加入repositories域，并在内部加入flatDir子域，在子域内加入dirs 'libs'；重新编译项目后即可引用aar内部的资源。
+    \paragraph{（Android Studio版本号1.1.0）arr库的引用方法二}
+    在Android Stuidio中使用File->New Module导入arr文件，该行为会使根目录下新出现一个项目根文件；在引用项目的build.gradle文件的dependencies域内加入compile project(':<工程目录下刚引入的库项目文件夹名>')；重新编译项目后即可引用aar内部的资源。缺点：1、当库文件更新时，引用库的工程需要删除其根目录下的被引用项目文件再重新导入；而方法一只需要重新覆盖arr文件。2、用方法二导入时，部分类在代码补全部分无法被Android Studio识别（可成功编译并运行）。
+    \paragraph{arr库被引用时工程目录的变化}
+    当arr库被导入进Android Stuidio工程后的下一次编译，gradle会将arr库展开。arr库里包含开发者编写的class文件（被打包为jar文件），所有的res文件和AndroidManifest.xml文件（已被编译）以及R类的信息（R.txt）。gradle会将arr库展开的内容放在<项目根目录>/build/intermediates/exploded-aar下，不过方法一和方法二在其目录下创建的子目录名称不一样，这可能是方法二无法用Android Studio完成自动补全的原因（classes.jar位置不同）。
+    \paragraph{引用项目和被引用项目的R类}
+    根据R.txt和被编译的布局文件，gradle会更新引用项目的R类并重新为被引用项目重新生成新的R类，这样可以保证被引用库的代码不会受影响，同时引用项目在自己的命名空间内也可以使用这些id（大胆猜测值是相同的）。被引用项目的R类是根据R.txt重新生成在<项目根目录>/build/generated下的，所以生成arr库时的R类文件并没有被加入到classes.jar中。这里遇到过一个bug，如果被引用库与引用项目有相同名称的布局文件，被引用库中的布局文件无法通过R类被引用到，但带来的结果（居然）是无法被引用的布局文件的id值不会被写进R类中（在方法一中，id值会被写进引用项目的R类，但不会被写进被引用库的R类；在方法二中，两个R类都不存在对应id值），因此在运行被引用库的代码时抛出的是（R.id）成员不存在异常，而不是空引用异常（布局文件不同因此找不到对应id的控件）。但由此可断定，导入库时重写的R类的内容受库中布局文件的影响。
+    \paragraph{被引用项目的AndroidManifest.xml}
+    在被引用库中的Android组件可以写进AndroidManifest.xml中，该文件会被打包到aar，其定义的属性在引用项目中同样有效。
+    \paragraph{arr项目构建的一个bug}
+    在执行build的时候，如果之前已经生成过arr文件，该文件不会被新的build替换，需要执行一次clean project。
+    \paragraph{重新构建被引用库时自动应用到引用项目}
+    方法一和方法二都无法使新编译的库被自动应用到依赖项目的下一次编译中。但可以对方法一作小修改，令libs下的arr文件成为软连接。已验证git支持软链接文件。
+    \subsection{Android动画框架}
+    \paragraph{View Animation与Property Animation}
+    View Animation（对应Animation类）与Property Animation（对应ValueAnimator类）是Android主要的两类动画框架。它们在用法上比较相似，最本质的区别在于，View Animation不会改变控件的真实布局属性，而Property Animation会改变。
+    \paragraph{View Animation的基本用法}
+    使用View Animation时需要重载startTransformation，它会传入两个参数f和t。其中f表示当前动画所到的刻度（其中起点所在刻度为0，终点所在刻度为1)，已受interpolator影响；t是一个matrix类型，通过设置该matrix来完成相应的布局变换。Android已经提供了一些继承自Animation的常用动画类（即startTransformation已实现）供直接使用。
+    \paragraph{Property Animation的基本用法}
+    在Property Animation中，基类ValueAnimator仅提供数值随时间变化的引擎，要真正将属性更改到View中，需要添加AnimationUpdateListener，并在onAnimationUpdate中完成View属性修改的操作（onAnimationUpdate的调用是在UI线程中）；Property Animation还提供了ObjectAnimator类，该类继承自ValueAnimator，通过预设对象和属性名称自动完成属性的更新而无需注册AnimationUpdateListener。使用ObjectAnimator的条件是，需要被设置的属性必须有其对应的Getter和Setter方法（Getter和Setter满足驼峰命名法），且参数和返回值必须符合标准。
+    \paragraph{控制动画速率的工具：TimeInterpolator}
+    Android的动画框架类都可以设置TimeInterpolator类来完成动画速率的控制，该类只有一个抽象方法getInterpolation，传入值是当前动画所在的时间刻度（定义域[0,1]），返回值（约定）是控件属性相对起始点和终点的刻度（起始点刻度为0，终点刻度为1，但当前刻度可以是0~1以外的值）。Android动画框架在每次更新属性前，会先调用TimeInterpolator来得到动画实际所在刻度（后以术语动画刻度表示，区别于时间刻度），再根据动画刻度进行下一步操作。
+    \paragraph{从刻度到实际属性值的转化：TypeAnimator}
+    TypeAnimator是只有Property Animation框架才具有的元件。在得到动画刻度后，Property Animation会使用起始值、结束值和动画刻度来计算当前值，而当前值得获取则是通过TypeAnimator的抽象方法evaluate得到的。通过getAnimatedValue方法得到的值就是通过TypeAnimator计算得到的当前值。
+    \paragraph{Android的定时休眠精确性}
+    Android中可以调用Thread.sleep或Handler.postDelayed来完成延时操作，但受限于线程优先级或前置队列任务阻塞等原因，都不能在精确的时间内被唤醒。最坏的非前置阻塞情况下可能会被延迟30ms。
+    \paragraph{Property Animation的实现与动画流畅性的保证}
+    所有的Property Animation都统一被一个UI线程的Handler所处理。当动画队列（或延时动画队列）非空时，这个Handler会定期被唤醒（由上一条可知该Handler无法在精确时间点被唤醒，不过期望的唤醒频率为100Hz）。每次被唤醒的时候，这个Handler会按ValueAnimator的添加顺序依次执行更新（如前面所述，先使用Timestamp计算时间刻度、再使用TimeInterpolator得到动画刻度、再使用TypeAnimator得到属性值、最后如果是ObjectAnimator则更新相应的属性）。由于Handler处于UI线程中，可以保证所有动画的每一帧都是同时发生更改。引申：如果同时有两个动画处于动画队列中，并修改同一个View的同一个属性，则在视觉上真正被执行的是后被加入动画队列中的动画，达到了覆盖前一个动画的效果；不过前一个动画依然会消耗计算资源，而且如果后一个动画先一步完成，前一个动画的剩余部分依然会被显示出来，因此除非刻意要实现此类效果，在执行新的同类动画时应该先取消掉前一个动画。
+    \paragraph{Property Animation Handler的定期唤醒策略}
+    Handler的定期唤醒只有在队列非空时才会被激活，且在激活状态下Handler的消息队列中有且仅有一个下一周期的延时唤醒消息。具体策略是：当Handler被定期唤醒时，将执行队列中动画的更新操作。如果更新操作完成以后动画队列非空，Handler将向自己发送一条延时消息，延时长度为下一个10ms的整点；如果更新完成后动画队列为空，Handler将不发送延时消息，直到有新的动画将要加入队列前Handler都不再被唤醒。除了定期唤醒，Handler也会在新的动画将要被加入队列时唤醒，如果加入新动画前队列为空，则会在动画加入后发送延时消息，使定期唤醒进入激活状态；如果新动画加入前队列就非空了，说明当前正处于激活状态，Handler不会在最后发送延时消息，如果不做这个判断，ValueAnimator可能在一个定期唤醒周期内被唤醒多次，浪费计算资源。
+    \paragraph{适用于ObjectAnimator的View属性}
+    专为ObjectAnimator使用的View属性有：TranslationX, TranslationY, Rotation, ScaleX, ScaleY, Alpha。对这些属性执行修改会最低限度使用UI线程的计算资源，且这些修改会自动应用到被修改View的子控件中。
+    \paragraph{TraslationX, X和Left}
+    Left是View被加入布局时相对于父View左边界的距离；TranslationX是相对于Left所在位置偏移的距离；X是View当前相对于父View的左边界距离。在View被加入布局以后，如果改变X或TranslationX，则另一个属性也会相应发生改变，而Left不会改变；如果改变Left，则X也会相应发生改变，但是TranslationX不会改变。推测修改TranslationX会消耗更少的计算资源。（该性质同样适用于Y, TranslationY, Top）
+    \paragraph{ValueAnimator的KeyFrame}
+    ValueAnimator的中间值计算需要至少两个端点值 - 起始值和终止值（ObjectAnimator可以只传入终止值，而以当前属性作为起始值），但也可以传入多于两个值，每个值对应一个刻度（动画刻度），构成数个关键帧。
+    \paragraph{KeyFrame的载体：PropertyValuesHolder}
+    ValueAnimator的KeyFrame实质上是被储存在PropertyValuesHolder中，而ValueAnimator直接持有的是PropertyValuesHolder的引用，一个PropertyValuesHolder对应了一个属性名称和动画关键帧序列。可以向ObjectAnimator传入多个PropertyValuesHolder，每一个代表不同的属性和关键帧序列。在更新时它们不但都会被应用，而且可以减少View的invalidate调用次数，提升少许性能。
+    \paragraph{Drawable Animation}
+    Drawable Animation是Android的第三类动画，它通过在每一帧中得到一个Drawable对象来实现动画效果，由于项目特性，当前并没有用到此类动画。
+\end{document}

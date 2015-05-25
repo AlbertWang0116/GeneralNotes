@@ -1,0 +1,63 @@
+\documentclass[UTF8]{ctexart}
+	\title{Activity学习笔记}
+	\author{st.krwlng}
+\begin{document}
+	\maketitle
+	\tableofcontents
+	\subsection{Activity组件的文件分布}
+	一个Activity组件至少需要一个继承了android.app.Activity的Java类文件，同时需要在AndroidManifest.xml中声明这个Activity。而在一般的开发中，为了定义这个Activity的视图，需要至少一个用于布局描述的xml文件放在res/layout/下。如果使用IDE创建一个blank activity，IDE除了进行上述操作，还会在res/menu/下添加菜单描述文件，并在res/values/string.xml中添加Activity标题内容字符串。
+	\subsection{Activity的生命周期（简）}
+	\paragraph{创建} onCreate()->onStart()->onResume()。
+	\paragraph{销毁} onPause()->onStop()->onDestroy()。
+	\paragraph{用户挂起} onPause()->onStop()。
+	\paragraph{用户唤醒} onRestart()->onStart()->onResume()。
+	\paragraph{特殊：用户执行挂起后onPause执行结束前被用户唤醒} onPause()->onResume()。
+
+	另外，当Activity被用户挂起，onStop执行结束后若长时间未被唤醒，以至占用内存需要被其他应用程序使用时，进程会被终止。用户重新导航到该Activity时将重新从“创建"部分开始。
+	\subsection{Activity之间的数据传递}
+	向Android SDK创建新窗口的接口传递的是Acitivity类型，因此在编程中不能直接获取Activity对象的引用（而是需要借助其他一些方法）。因此通过Activity对象的引用来向对应窗体发送消息并不是框架推荐的做法。
+
+	主动创建Activity的Activity窗体可以通过Intent对象与被创建的Activity进行消息传递，传递的数据仅限于基本数据类型和可序列化的数据类型（实现了Serializable接口）。为了传递复杂数据类型，Android框架有一个全局类的机制。
+
+	一种（自建的）可行复杂数据类型消息传递机制：构造一个全局容器类，主动Activity向全局类写入复杂数据，并从全局类得到一个int类型的定位符key。主动Activity将该key写入Intent对象传给被动Activity，被动Activity通过key从全局容器中获得复杂数据，复杂数据被取出后，全局容器将该索引从容器里移除。
+	\subsection{视图简介}
+	Activity有一个View类成员用来定义该Activity的外观。Android的所有控件都继承自View类，Android的控件分为3类：布局类、视图容器类和视图类。其中前两类可以容纳复数个控件，最后一类提供某些交互功能，如Button, TextView等。一个视图是由3类不同控件组合形成的控件树，其中枝节点是布局类或视图容器类，叶节点是视图类。（值得注意的是，wpf的视图也是一个控件树，但wpf的功能控件——即Android中的视图类——本身的视图也构成了一个控件树，Android的视图类的视图结构需要通过后续学习来获知）
+
+	一个视图可以通过XML文件定义，并作为资源文件放置在res/layout/中。一个Activity类可以通过setContentView来使用该视图作为其根视图；也可以通过addView将该视图加入到当前某个容器控件里。addView方法也可以将Java代码动态生成的控件加入到视图中。
+
+	Android的容器控件的基类是ViewGroup。该类提供了getChildCount和getChildAt方法可获取子控件的数量和引用。通过这两个方法可以遍历整个控件树。
+	\subsection{主题简介}
+	可以通过主题预定义一些Activity的缺省属性，从而使得一些保持一致的属性易于重用和维护。Android SDK提供了许多默认的主题，被放置在<Android SDK根目录>/platforms/android-<版本>/data/res/values/themes.xml中。
+	\subsection{Intent与窗体调用机制}
+	Android系统支持将Activity（以及其他应用程序组件）与应用程序解耦，使它们可以被其他应用程序调用。类似于函数的调用机制，当前的Activity调用另一个Android系统中存在的Activity，并在调用时可以传入一些参数；当被调用的Acitivity调用finish方法关闭时，当前应用程序的焦点会返回到调用的Activity，且该Activity可以从先前调用的Activity中得到返回结果。综上所述，Android系统会为应用程序维护Activity的调用栈，并在Activity的调用和返回时为栈上相邻的Activity提供消息传递机制。Android系统不支持（不建议）程序元素获取Activity对象的引用，因此其他情况下的Activity消息传递会比较困难（或存在其他机制）。
+
+	当Android程序被安装到Android系统时，系统会将该程序AndroidManifest.xml文件下声明的Activity（用<activity>标签声明的元素集）装载到系统中。只有被装载的Activity可以在应用程序中被调用。因此Android程序里每一个被使用的Activity必须在AndroidManifest.xml中被声明。
+		\subsubsection{Intent类}
+		Activity调用机制的核心程序元素是Intent类。Intent类是Activity调用时需要传入的唯一参数，它包含了需要调用的Activity（或其他应用程序组件）的定位信息、要传入的参数、调用时的设定参数（flag）；被调用的Activity在返回时，也是通过Intent对象传递返回数据。根据Intent对象内被设置的定位信息的类型，调用类型被分为显式调用和隐式调用。
+		\subsubsection{Activity的显式调用}
+		Activity的显式调用通过向Intent指定目标Activity的package和class来完成。其中，package被定义在目标所在<application>标签下（Activity宿主应用程序的AnroidManifest.xml文件的application标签）的package属性中，是宿主应用程序的包名；class被定义在目标<activity>标签下的anroid:name属性，是目标Java类的<包名>.<类名>。
+		
+		Intent类提供SetClass、SetClassName和SetComponent三种方法和多种重载来指定package和class，传入的值是package和class对应的字符串或表达它们的包装类（分别是Component类和Class类）。包装类的好处是，在指定同一个应用程序的Activity时，Component参数可以传this，Class类可以直接用<类名>.class获取。
+		
+		如果想要跨进程调用Activity，目标Activity对应的activity标签的anroid:expose属性必须显式地设置为true。Android系统并不推荐显式地跨进程调用Activity，尤其是非自身开发Activity，原因时随着目标Activity被其他开发者更新，package和class值可能发生变化，以至于不便于调用方维护。因此Android中还存在隐式调用。显式掉调用的优点在于，在Android系统中Activity的package+class是唯一的，因此在调用时，Intent会定位到唯一的Activity；隐式调用时可能会发现多个Activity与定位参数匹配，此时会向用户弹出选择窗口，让用户选择要使用的Activity（有时选择功能是需要的，比如open in）。
+		\subsubsection{Activity的隐式调用}
+		Activity的隐式调用通过向Intent指定目标Activity的Action、Category和Data来完成。Activity对应的<activity>标签下可以加入任意数量的<intent-filter>标签，在该标签里可以加入若干的<action>、<category>和<data>标签。对于一个隐式调用，Android系统会验证每一个<intent-filter>，如果Intent里定义的Action、Category和Data满足<intent-filter>的过滤要求（过滤规则书本里讲得过于复杂且有少量矛盾，这里略过），其宿主Activity就会被加入调用候选；如果存在多个候选，则Android系统会弹出一个选项列表供用户选择要使用的Activity。
+		
+		隐式调用用于匹配的Action和Category也是字符串属性，但它们不像包名和类名会受到Java编译规则的牵制，且允许不同Activity使用重复的Action和Category，因此字符串值不容易改变（Android SDK也提供了许多静态Action和Category值），使得调用者的代码更容易维护，允许复数匹配也使得调用选择更加灵活。
+		\subsubsection{Intent的数据传递方法}
+		Intent类通过Data和Extra存储要传递数据。Data可以传递Uri数据，它也是Activity的定位参数之一（也是定位机制中最复杂的部分）。Extra是一个<key, value>结构的Dictionary，其中key是String类型，value可以是基本数据类型或可序列化类型。Intent在到达目标Activity后，可以通过它提供的方法得到Action、Category、Data、Extra和Flag（一些系统窗口或其他开发者的Activity会根据调用时指定的Action采取不同的行为）。
+
+	\paragraph{备注} 从书中的例子看到，在调用时可以指定显式的参数后再指定Action（为了能在找到唯一的目标Activity的同时向其传入Action值），由此推测Activity的定位机制可能是同时满足显式规则和隐式规则。
+    \subsection{Activity所属class文件的定位}
+    在AndroidManifest.xml中被定义的Activity会在apk工程被安装到Android机器时被装载到系统列表中，供自身和其他应用程序调用。<activity>标签唯一的必填属性是android:name，它指定了该Activity对应的class的完整名称。当Activity被调用时，Android系统会将其所属工程的源文件根目录加入classpath中，并根据完整类名找到定义该Activity的class文件。android:name属性可以填写Activity类的完整名称（包名+类名），也可以填相对名称。使用相对名称时，其前缀是<application>标签下的package属性（注：<application>标签下的package属性决定了该应用程序在Android系统中的进程名称，有一些标签属性需要进程名称来定位目标进程）。
+    \subsection{任务（进程）与回退栈}
+    所有的Android应用程序都有一个统一的运行框架，其中一个特性是它维护了一个栈数据结构用来存储调用的Activity（术语为回退栈）。当一个新的Activity将被加入到进程时，它始终会被加入到目标进程的栈顶；用户的焦点定位在某个进程时，显示在屏幕上的Activity也始终是栈顶的Activity；进程在销毁它内部的Activity时，也始终是按出栈的顺序进行的。回退栈机制规范化了Activity的调用逻辑，它同时也是窗体加载机制（launchMode、Intent的flag）和窗体资源自动释放机制的基础。
+        \subsubsection{<activity>标签下的launchMode属性}
+        （待测试项目：Intent的Flag和launchMode的共存、覆盖条件；singleTask是否受taskAffinity影响）
+        \subsubsection{Intent类的Flag参数}
+        \subsubsection{影响窗体所属进程的标签属性}
+        \subsubsection{窗体资源自动释放机制与状态存储}
+        当Activity失去焦点、调用onStop()方法后长时间未重新获取焦点，且因系统内其他组件占用内存导致当前内存资源不够时，Android系统会释放该Activity占用的资源。不过系统并不会销毁该Activity，也不会将其从回退栈上移除，而是为其保留一个标记。当焦点重新返回到该Activity时，系统会重新创建一个实例（从onCreate方法开始）。默认情况下，Activity被释放时的状态不会被系统记录，因此重新创建后的Activity不会保留失去焦点前的状态。不过开发者可以重载onSaveInstanceState方法将想要保留的状态放到一个Bundle对象里，在重建实例时，可以通过onCreate方法的savedInstanceState参数获取存储的Bundle。（Intent的Extra属性实质使用的也是Bundle对象，因此Bundle对象只能存储基本数据类型和可序列化数据类型）
+
+        如果是一个应用程序长时间失去焦点，Android系统会销毁掉其回退栈最底层以外的所有Activity以取回其占用的资源（这种情况下系统没有提供状态保存机制因此无法恢复）。不过可以在AndroidManifest.xml中更改默认属性，使应用程序回退栈中的Activity不会被释放掉；也可以设置为每次应用程序失去焦点都释放回退栈非底层的所有Activity。
+\end{document}

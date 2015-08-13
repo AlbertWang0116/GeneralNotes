@@ -1,0 +1,12 @@
+\documentclass[UTF8]{ctexart}
+    \title{Maven创建Java类库项目}
+    \author{st.krwlng}
+\begin{document}
+    \maketitle
+    \tableofcontents
+    \subsection{创建命令与目录结构} 使用mvn archetype:generate可以在当前目录下创建基本的java工程（phase: archetype、goal: generate）。在创建的过程中会要求输入groupId，该参数与java源码中得package等效；artifactId，该参数为项目名称，也是创建的目录名称；version，项目的版本。groupId、artifactId、version构成的三元组唯一描述了一个Maven工程。项目创建完成后出现一个{artifactId}名称的目录，该目录下有pom.xml文件，以及目录src/main/java/{groupId}和src/test/java/{groupId}。其中，src/main/java/{groupId}目录下存放项目源码，maven在编译过程中会编译所有该目录下的java源码文件到target/classes/{groupId}下；src/test/java/{groupId}存放该项目的单元测试源码文件，maven在单元测试阶段会编译并执行该目录下的所有java源码文件。pom.xml描述了maven的构建规则，对于Java类库项目，构建规则中比较重要的标签有groupId（编译阶段要编译的文件的位置由根目录+groupId确定，其中根目录默认为src/main/java/）、artifactId、dependencies、plugins。
+    \subsection{依赖库描述} pom.xml文件的dependencies标签描述了需要从本地或服务器上获取的依赖库文件。依赖库可以从远端服务器加载，在这种情况下，dependency标签下主要需要描述的标签为groupId、artifactId和version。根据该三元组，Maven在编译前会先尝试获取dependency标签描述的依赖库，具体获取顺序是：1、查询本地缓存目录中是否有所需依赖库文件；2、如果未获取到，会尝试从Maven中心服务器下载该依赖库文件；3、如果未获取到，尝试从本地自定义的远程服务器下载依赖库文件（在pom.xml的repositories标签下可以自定义其他远程服务器）；4、如果未获取到，则依赖库获取失败，项目构建终止。只有所有dependencies描述的外部依赖库文件都成功获取才会开始编译阶段。依赖库除了从外部获取，也可以指定本地路径并让maven从本地加载，此时dependency的子标签会有所变化，groupId、artifactId为本地依赖库文件名，version可以为任意。较重要的标签为scope，需要为system；systemPath，依赖库在本地机器上的文件系统路径。
+    \subsection{编译插件描述} 生成项目工程时pom.xml中已经存在一个artifactId为maven-compiler-plugin的插件，该插件为默认的编译插件。该插件完成了在源码目录下自动搜索java源码文件并编译的过程。plugin标签下的configuration子标签用于设置编译命令时的参数，其中有source，相当于javac的-source参数；target，相当于javac的-target参数；debug，该参数默认为true，此时编译有-g参数；compilerArguments下可以设置其他自定义参数，比如javac的-bootclasspath参数可以在这里设置，方法是添加bootclasspath为compilerArguments的子标签，并将值设置为bootclasspath标签的内容。
+    \subsection{单元测试} 生成项目工程时pom.xml中已经存在junit依赖库，在执行mvn test时，maven会自动将测试源码目录内的单元测试文件编译并用junit执行。maven可以自动生成单元测试覆盖率的报告，不过需要在配置文件中添加额外的插件：在plugins标签下添加groupId为maven、artifactId为maven-clover-plugin、version为2.4.2（可能已经有新版本）的plugin。添加完毕后，在单元测试时使用命令mvn cobertura:covertura，单元测试完成后可以在target/site/cobertura/index.html中查看单元测试覆盖率的情况，以及未被覆盖的分支和代码。
+    \subsection{maven初步认识} maven的运行生命周期是一个固定顺序的phase序列，maven本身只是一个构建框架，行为全部由plugin决定。每个plugin可以绑定到maven生命周期的一个或多个phase中，并创建一个或多个goal，并在每个goal中运行特定的脚本。
+\end{document}

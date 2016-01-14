@@ -1,0 +1,2 @@
+1. Install gconf-editor, execute it, and goes into app->gnome-terminal->profiles. Then edit profile according to template profile
+file, which is stored in LunixResource folder.
